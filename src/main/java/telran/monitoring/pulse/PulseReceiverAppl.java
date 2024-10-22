@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import com.amazonaws.services.dynamodbv2.*;
 import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.*;
+
 public class PulseReceiverAppl {
 private static final int PORT = 5000;
 private static final int MAX_BUFFER_SIZE = 1500;
@@ -26,13 +27,18 @@ static Table table = dynamo.getTable("pulse_values");
 static Logger logger = Logger.getLogger("LoggerAppl");
 
 	public static void main(String[] args) throws Exception{
-		LogManager.getLogManager().reset();
+		 Logger rootLogger = LogManager.getLogManager().getLogger("");
 		Level level = getLevel(); 
 		logger.setLevel(level);
 		Handler handlerFile = new FileHandler("logs");
-		handlerFile.setLevel(Level.FINEST);
+		rootLogger.removeHandler(handlerFile);
+		Handler handlerConsole = new ConsoleHandler();
+		 rootLogger.removeHandler(handlerConsole);
+		handlerConsole.setLevel(level);
+		handlerFile.setLevel(level);
 		handlerFile.setFormatter(new SimpleFormatter());
 		logger.addHandler(handlerFile);
+		logger.addHandler(handlerConsole);
 		logger.info("DB Table name: " + table.getTableName());
 		logger.config("Environment variables: " 
 				+ "LOGGING_LEVEL: " + level + "; "
@@ -51,7 +57,7 @@ static Logger logger = Logger.getLogger("LoggerAppl");
 
 	}
 	private static Level getLevel() {
-		Level level = Level.INFO;
+		Level level = Level.WARNING;
 		try {
 			level = Level.parse(System.getenv("LOGGING_LEVEL"));
 			
