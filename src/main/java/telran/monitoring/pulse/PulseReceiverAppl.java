@@ -67,10 +67,15 @@ static Logger logger = Logger.getLogger("LoggerAppl");
 	
 	private static void processReceivedData(DatagramPacket packet) {
 		String json = new String(Arrays.copyOf(packet.getData(), packet.getLength()));
-		logger.fine(json);
-		table.putItem(new PutItemSpec().withItem(Item.fromJSON(json)));
 		JSONObject jsonObj = new JSONObject(json);
-		logger.finer("Patient ID: "+ jsonObj.getLong("patientId") + " Timestamp: " + jsonObj.getLong("timestamp"));
+		logger.fine(json);
+		try {
+			table.putItem(new PutItemSpec().withItem(Item.fromJSON(json)));
+			logger.finer("Patient ID: "+ jsonObj.getLong("patientId") + " Timestamp: " + jsonObj.getLong("timestamp"));
+		} catch (Exception e) {
+			logger.warning("Item haven't been put to DB");
+		}
+		
 		int pulseValue = jsonObj.getInt("value");
 		if((pulseValue > WARN_MAX_PULSE_VALUE & pulseValue <= MAX_THRESHOLD_PULSE_VALUE)
 				|| (pulseValue < WARN_MIN_PULSE_VALUE & pulseValue >= MIN_THRESHOLD_PULSE_VALUE)) {
